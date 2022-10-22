@@ -12,6 +12,9 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 import lombok.Data;
 
 @Entity
@@ -22,17 +25,19 @@ public class Movie {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(name="year")
+	@Column(name="year", nullable = false)
 	private Integer year;
-	@Column(name="title")
+	@Column(name="title", nullable = false, unique = true)
 	private String title;
 	@ManyToMany
+	@Cascade({CascadeType.SAVE_UPDATE, CascadeType.MERGE,CascadeType.PERSIST})
 	@JoinTable(
 			name = "rl_movie_producer",
 			joinColumns = @JoinColumn(name = "id_movie"),
 			inverseJoinColumns = @JoinColumn(name = "id_producer"))
 	private List<Producer> producers;
 	@ManyToMany
+	@Cascade({CascadeType.SAVE_UPDATE, CascadeType.MERGE,CascadeType.PERSIST})
 	@JoinTable(
 			name = "rl_movie_studio",
 			joinColumns = @JoinColumn(name = "id_movie"),

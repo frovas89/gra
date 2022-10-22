@@ -7,9 +7,12 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 public class Main {
 
 	public static void main(String ... args) {
-		System.out.println("----------------------------------");
-		System.out.println("  INICIANDO IMPORTAÇÃO DOS DADOS  ");
-		System.out.println("----------------------------------");
+
 		Quarkus.run(args);
+
+		System.out.println("-----------------");
+		System.out.println("  INICIANDO API  ");
+		System.out.println("-----------------");
+
 	}
 }

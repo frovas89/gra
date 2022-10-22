@@ -2,6 +2,7 @@ package br.com.frovas.model;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,9 +21,9 @@ public class Studio {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(name = "name")
+	@Column(name = "name", nullable = false, unique = true)
 	private String name;
 
-	@ManyToMany(mappedBy = "studios")
+	@ManyToMany(mappedBy = "studios", cascade = CascadeType.ALL)
 	List<Movie> movies;
 }

@@ -46,8 +46,9 @@ public class MovieResource {
 	public Response listMinMaxWinners(@PathParam("title") String title) {
 
 
+		var list = GRAController.listMinMaxWinners();
 
-		return Response.ok("OK").build();
+		return Response.ok(list).build();
 	}
 
 	@GET

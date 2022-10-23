@@ -14,7 +14,7 @@ create table studios (
 
 create table movies (
 	id bigserial not null primary key, 
-	year integer not null,
+	year_mov integer not null,
 	title varchar(200) not null, 
 	winner boolean,
 	unique(title)

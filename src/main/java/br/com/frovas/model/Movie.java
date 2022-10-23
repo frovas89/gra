@@ -25,7 +25,7 @@ public class Movie {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(name="year", nullable = false)
+	@Column(name="year_mov", nullable = false)
 	private Integer year;
 	@Column(name="title", nullable = false, unique = true)
 	private String title;

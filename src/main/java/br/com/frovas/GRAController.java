@@ -18,11 +18,19 @@ import com.opencsv.exceptions.CsvException;
 import br.com.frovas.model.Movie;
 import br.com.frovas.model.Producer;
 import br.com.frovas.model.Studio;
+import br.com.frovas.repository.MovieRepository;
 import br.com.frovas.rest.dto.FinalProducerIntervalDTO;
 import br.com.frovas.rest.dto.ProducerDTO;
 import br.com.frovas.rest.dto.ProducerIntervalDTO;
 
 public class GRAController {
+
+
+	public void teste() {
+
+		//		var movies = em.persist(em);;
+		//		movies.forEach(System.out::println);
+	}
 
 
 	public static List<Movie> readCSVFileToObject(FileReader fileReader) throws IOException, CsvException {
@@ -100,7 +108,7 @@ public class GRAController {
 
 	}
 
-	public static FinalProducerIntervalDTO listMinMaxWinners() {
+	public static FinalProducerIntervalDTO listMinMaxWinners(MovieRepository movieRepository) {
 
 
 		//		obter somente produtores vencedores e jogar numa DTO
@@ -113,7 +121,8 @@ public class GRAController {
 
 
 
-		//		List<Movie> listWinnerMovies = MovieController.listWinnerMovies();
+		//				List<Movie> listWinnerMovies = MovieController.listWinnerMovies();
+		List<Movie> listWinnerMovies = movieRepository.listAll();
 
 
 
@@ -122,23 +131,23 @@ public class GRAController {
 
 
 
-		try {
-			List<Movie> listWinnerMovies = readCSVFileToObject(new FileReader("movielist.csv"));
+		//		try {
+		//			List<Movie> listWinnerMovies = readCSVFileToObject(new FileReader("movielist.csv"));
 
 
-			for (Movie movie : listWinnerMovies) {
-				ProducerDTO dto = new ProducerDTO();
-				for (Producer producer: movie.getProducers()) {
-					dto.setProducerName(producer.getName());
-					dto.setMovie(movie.getTitle());
-					dto.setYear(movie.getYear());
+		for (Movie movie : listWinnerMovies) {
+			ProducerDTO dto = new ProducerDTO();
+			for (Producer producer: movie.getProducers()) {
+				dto.setProducerName(producer.getName());
+				dto.setMovie(movie.getTitle());
+				dto.setYear(movie.getYear());
 
-					listProducerDTO.add(dto);
-				}
+				listProducerDTO.add(dto);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		//		} catch (Exception e) {
+		//			e.printStackTrace();
+		//		}
 
 
 		//		fazer uma HASH onde produtor é a chave?

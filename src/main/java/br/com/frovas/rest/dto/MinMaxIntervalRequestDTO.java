@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class FinalProducerIntervalDTO {
+public class MinMaxIntervalRequestDTO {
 
 	private List<ProducerIntervalDTO> min;
 	private List<ProducerIntervalDTO> max;

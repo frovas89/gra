@@ -1,5 +1,7 @@
 package br.com.frovas.repository;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.NoResultException;
 
@@ -21,5 +23,12 @@ public class MovieRepository implements PanacheRepository<Movie>{
 		}
 		return movie;
 	}
+
+	public List<Movie> listWinners() {
+		PanacheQuery<Movie> query = find("winner", Boolean.TRUE);
+		List<Movie> listMovies = query.list();
+		return listMovies;
+	}
+
 
 }

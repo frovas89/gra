@@ -36,7 +36,14 @@ public class StartupApp {
 	}
 
 	void onStart(@Observes StartupEvent ev) {
-//		loadDataFromCSV("movielist.csv");
+
+		System.out.println("\n\n-----------------");
+		System.out.println("  INICIANDO API  ");
+		System.out.println("-----------------\n\n");
+
+		loadDataFromCSV("movielist.csv");
+
+//		loadDataFromCSV("movielistTESTS.csv");
 	}
 
 	@Transactional
@@ -47,11 +54,6 @@ public class StartupApp {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		//			System.out.println("Lista de filmes");
-		//			for (Movie movie : movies) {
-		//				System.out.println(movie.toString());
-		//			}
 
 		for (Movie movie : movies) {
 

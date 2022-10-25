@@ -19,9 +19,9 @@ import br.com.frovas.model.Movie;
 import br.com.frovas.model.Producer;
 import br.com.frovas.model.Studio;
 import br.com.frovas.repository.MovieRepository;
-import br.com.frovas.rest.dto.FinalProducerIntervalDTO;
-import br.com.frovas.rest.dto.ProducerDTO;
+import br.com.frovas.rest.dto.MinMaxIntervalRequestDTO;
 import br.com.frovas.rest.dto.ProducerIntervalDTO;
+import br.com.frovas.rest.dto.ProducerMovieDTO;
 
 public class GRAController {
 
@@ -108,54 +108,34 @@ public class GRAController {
 
 	}
 
-	public static FinalProducerIntervalDTO listMinMaxWinners(MovieRepository movieRepository) {
-
-
-		//		obter somente produtores vencedores e jogar numa DTO
-		//		arrumar a DTO com produtor, filme e ano que venceu
-		//		ver como fazer isso direto na ProducerController
-
-		List<ProducerDTO> listProducerDTO = new ArrayList<ProducerDTO>();
+	public static MinMaxIntervalRequestDTO listMinMaxWinners(MovieRepository movieRepository) {
 
 
 
+		List<ProducerMovieDTO> listProducerDTO = new ArrayList<ProducerMovieDTO>();
 
-
-		//				List<Movie> listWinnerMovies = MovieController.listWinnerMovies();
-		List<Movie> listWinnerMovies = movieRepository.listAll();
-
-
-
-
-
-
-
-
-		//		try {
-		//			List<Movie> listWinnerMovies = readCSVFileToObject(new FileReader("movielist.csv"));
+		List<Movie> listWinnerMovies = movieRepository.listWinners();
 
 
 		for (Movie movie : listWinnerMovies) {
-			ProducerDTO dto = new ProducerDTO();
 			for (Producer producer: movie.getProducers()) {
+				ProducerMovieDTO dto = new ProducerMovieDTO();
 				dto.setProducerName(producer.getName());
 				dto.setMovie(movie.getTitle());
 				dto.setYear(movie.getYear());
 
-				listProducerDTO.add(dto);
+//				if(!listProducerDTO.contains(dto)) {
+					listProducerDTO.add(dto);
+//				}
 			}
 		}
-		//		} catch (Exception e) {
-		//			e.printStackTrace();
-		//		}
-
 
 		//		fazer uma HASH onde produtor é a chave?
-		HashMap<String, List<ProducerDTO>> hashProducerDTO = new HashMap<String, List<ProducerDTO>>();
+		HashMap<String, List<ProducerMovieDTO>> hashProducerDTO = new HashMap<String, List<ProducerMovieDTO>>();
 
-		for (ProducerDTO dto : listProducerDTO) {
+		for (ProducerMovieDTO dto : listProducerDTO) {
 			if(!hashProducerDTO.containsKey(dto.getProducerName())) {
-				List<ProducerDTO> listAux = new ArrayList<ProducerDTO>();
+				List<ProducerMovieDTO> listAux = new ArrayList<ProducerMovieDTO>();
 				listAux.add(dto);
 				hashProducerDTO.put(dto.getProducerName(), listAux);
 			} else {
@@ -163,59 +143,83 @@ public class GRAController {
 			}
 		}
 
-		//		percorrer a lista por produtor, vendo a diferença de anos utilizando duas DTOs auxiliares, máxima e minima
-		//		substituindo a medida que encontrar outro
+		//Hash somente com produtores com mais de 2 filmes vencedores
+		HashMap<String, List<ProducerMovieDTO>> hashProducerWinnerDTO = new HashMap<String, List<ProducerMovieDTO>>();
+		for (String producerName : hashProducerDTO.keySet()) {
+			if(hashProducerDTO.get(producerName).size() > 1) {
+				hashProducerWinnerDTO.put(producerName, hashProducerDTO.get(producerName));
+			}
+		}
 
 		ProducerIntervalDTO dtoMin = new ProducerIntervalDTO();
 		dtoMin.setInterval(9999);
 		ProducerIntervalDTO dtoMax = new ProducerIntervalDTO();
 		dtoMax.setInterval(0);
 
-		for (String producerName : hashProducerDTO.keySet()) {
 
-			List<ProducerDTO> listProducersDTO = new ArrayList<>();
+		List<ProducerIntervalDTO> max = new ArrayList<ProducerIntervalDTO>();
+		List<ProducerIntervalDTO> min = new ArrayList<ProducerIntervalDTO>();
+		for (String producerName : hashProducerWinnerDTO.keySet()) {
+
+			List<ProducerMovieDTO> listProducersDTO = new ArrayList<>();
 			listProducersDTO.addAll(hashProducerDTO.get(producerName));
-			//se o produtor tem só um filme vencedor, nem precisa comparar
-			if(listProducersDTO.size() > 1) {
 
-				Comparator<ProducerDTO> comp = new Comparator<ProducerDTO>() {
-					@Override
-					public int compare(ProducerDTO dto1, ProducerDTO dto2) {
-						return dto1.getYear().compareTo(dto2.getYear());
-					}
-				};
-				Collections.sort(listProducersDTO,  comp);
-				// o máximo de diferença de anos será o primeiro da lista com o último
-				Integer firstYear = listProducersDTO.get(0).getYear();
-				Integer lastYear = listProducersDTO.get(listProducersDTO.size()-1).getYear();
-				if(lastYear - firstYear > dtoMax.getInterval()) {
-					dtoMax.setProducer(producerName);
-					dtoMax.setInterval(lastYear - firstYear);
-					dtoMax.setPreviousWin(firstYear);
-					dtoMax.setFollowingWin(lastYear);
+
+			//ordena por ano
+			Comparator<ProducerMovieDTO> comp = new Comparator<ProducerMovieDTO>() {
+				@Override
+				public int compare(ProducerMovieDTO dto1, ProducerMovieDTO dto2) {
+					return dto1.getYear().compareTo(dto2.getYear());
 				}
+			};
+			Collections.sort(listProducersDTO,  comp);
 
-				int count = 0;
-				// percorrer comparando dois a dois
-				while(count < listProducersDTO.size()-2) {
+			// o máximo de diferença de anos será o primeiro ano da lista deste produtor com o último
+			Integer firstYear = listProducersDTO.get(0).getYear();
+			Integer lastYear = listProducersDTO.get(listProducersDTO.size()-1).getYear();
 
-					Integer interval =  listProducersDTO.get(count+1).getYear() - listProducersDTO.get(count).getYear();
-					if(interval > 0 && interval < dtoMin.getInterval()) {
-						dtoMin.setProducer(producerName);
-						dtoMin.setInterval(lastYear - firstYear);
-						dtoMin.setPreviousWin(firstYear);
-						dtoMin.setFollowingWin(lastYear);
-					}
-					count++;
+			//quando é maior, zera a lista e começa adicionar de novo
+			if(lastYear - firstYear > dtoMax.getInterval()) {
+				dtoMax.setProducer(producerName);
+				dtoMax.setInterval(lastYear - firstYear);
+				dtoMax.setPreviousWin(firstYear);
+				dtoMax.setFollowingWin(lastYear);
+				max = new ArrayList<ProducerIntervalDTO>();
+				max.add(dtoMax);
+			} else if(lastYear - firstYear == dtoMax.getInterval()) {
+				//se for igual adiciona na lista (caso de 2 produtores com mesma diferença de anos vencedores)
+				//se for menor não faz nada
+				max.add(dtoMax);
+			}
+
+			int count = 0;
+
+			ProducerIntervalDTO dtoMinAux = new ProducerIntervalDTO();
+			// percorrer comparando dois a dois
+			while(count < listProducersDTO.size()-1) {
+
+				Integer interval =  listProducersDTO.get(count+1).getYear() - listProducersDTO.get(count).getYear();
+				if(interval > 0 && interval < dtoMin.getInterval()) {
+					dtoMinAux.setProducer(producerName);
+					dtoMinAux.setInterval(lastYear - firstYear);
+					dtoMinAux.setPreviousWin(firstYear);
+					dtoMinAux.setFollowingWin(lastYear);
+				}
+				count++;
+			}
+
+			if(dtoMinAux.getInterval() != null) {
+				if(dtoMinAux.getInterval() < dtoMin.getInterval()) {
+					dtoMin = dtoMinAux;
+					min = new ArrayList<ProducerIntervalDTO>();
+					min.add(dtoMin);
+				} else if (dtoMinAux.getInterval() == dtoMin.getInterval()) {
+					min.add(dtoMin);
 				}
 			}
 		}
 
-		FinalProducerIntervalDTO finalDTO = new FinalProducerIntervalDTO();
-		List<ProducerIntervalDTO> min = new ArrayList<ProducerIntervalDTO>();
-		min.add(dtoMin);
-		List<ProducerIntervalDTO> max = new ArrayList<ProducerIntervalDTO>();
-		max.add(dtoMax);
+		MinMaxIntervalRequestDTO finalDTO = new MinMaxIntervalRequestDTO();
 		finalDTO.setMin(min);
 		finalDTO.setMax(max);
 

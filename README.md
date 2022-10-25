@@ -29,4 +29,6 @@ Para ver os códigos acesse o repositório: `https://github.com/frovas89/gra`
 
 Caso queira executar o projeto, basta baixar do repositório e importar como projeto Maven no Eclipse
 
+Para iniciar a aplicação, executar o comando `compile quarkus:dev -DskipTests` na raíz do projeto.
+
 

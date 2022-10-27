@@ -40,15 +40,23 @@ public class MovieResourceTest {
 
 	Movie movieWithoutYear;
 	Movie movieWithoutProducer;
+	Movie sameProducerMovie;
 	Movie existentMovie;
 	Movie movie;
 
 	@BeforeEach
     public void setUP() {
+
+		Producer sameProducer = new Producer();
+		sameProducer.setName("Matthew Vaughn");
+		List<Producer> listSameProducer = new ArrayList<>();
+		listSameProducer.add(sameProducer);
+
 		Producer existentProducer = new Producer();
 		existentProducer.setName("Adam Sandler");
 		List<Producer> listProducer = new ArrayList<>();
 		listProducer.add(existentProducer);
+
 
 		Producer prod = new Producer();
 		prod.setName("Producer 1");
@@ -59,6 +67,13 @@ public class MovieResourceTest {
 		stu.setName("Studio 1");
 		List<Studio> listStu = new ArrayList<>();
 		listStu.add(stu);
+
+		sameProducerMovie = new Movie();
+		sameProducerMovie.setTitle("Test1");
+		sameProducerMovie.setProducers(listSameProducer);
+		sameProducerMovie.setStudios(listStu);
+		sameProducerMovie.setWinner(Boolean.TRUE);
+		sameProducerMovie.setYear(2028);
 
 		movie = new Movie();
 		movie.setTitle("Novo filme mesmo produtor");
@@ -124,10 +139,54 @@ public class MovieResourceTest {
         assertEquals(body.getMin().get(0).getInterval(), 1);
     }
 
+
 	@Test
 	@DisplayName(" ### deve criar novo filme com produtor existente com sucesso ### ")
 	@Order(3)
 	public void createMovieTest(){
+
+		var response = given()
+			.contentType(ContentType.JSON)
+			.body(sameProducerMovie)
+		.when()
+			.post()
+		.then()
+			.extract().response();
+
+		assertEquals(201, response.statusCode());
+        assertNotNull(response.jsonPath().getString("id"));
+	}
+
+	@Test
+    @DisplayName(" ### deve listar os produtores com o mínimo e o máximo de intervalo de prêmios, sendo que na lista de máximo tem 2 resultados ### ")
+    @Order(4)
+    public void listMinMaxWinnersSecondTest() {
+
+        var response =
+                given()
+                    .contentType(ContentType.JSON)
+                .when()
+                    .get(apiURL)
+                .then()
+                    .extract().response();
+
+        var minList = response.jsonPath().getList("min");
+        var maxList = response.jsonPath().getList("max");
+
+        assertEquals(Response.Status.OK.getStatusCode(), response.statusCode());
+        assertEquals(1, minList.size());
+        assertEquals(2, maxList.size());
+
+        MinMaxIntervalRequestDTO body = new Gson().fromJson(response.getBody().asString(), MinMaxIntervalRequestDTO.class);
+        assertEquals(body.getMax().get(0).getInterval(), 13);
+        assertEquals(body.getMin().get(0).getInterval(), 1);
+    }
+
+
+	@Test
+	@DisplayName(" ### deve criar novo filme com produtor existente com sucesso ### ")
+	@Order(5)
+	public void createMovieSecondTest(){
 
 		var response = given()
 			.contentType(ContentType.JSON)
@@ -142,9 +201,9 @@ public class MovieResourceTest {
 	}
 
     @Test
-    @DisplayName(" ### deve listar os produtores com o mínimo e o máximo de intervalo de prêmios, sendo o máximo 16 anos e o mínimo 1 ### ")
-    @Order(4)
-    public void listMinMaxWinnersSecondTest() {
+    @DisplayName(" ### deve listar os produtores com o mínimo e o máximo de intervalo de prêmios, sendo o máximo 21 anos e o mínimo 1 ### ")
+    @Order(6)
+    public void listMinMaxWinnersThirdTest() {
 
         var response =
                 given()
@@ -167,8 +226,8 @@ public class MovieResourceTest {
     }
 
 	@Test
-	@DisplayName(" ### deve listar todos os filmes (total 207) ### ")
-	@Order(5)
+	@DisplayName(" ### deve listar todos os filmes (total 208) ### ")
+	@Order(7)
 	public void listAllMoviesSecondTest(){
 
 		given()
@@ -177,7 +236,7 @@ public class MovieResourceTest {
 			.get()
 		.then()
 			.statusCode(200)
-			.body("size()", Matchers.is(207));
+			.body("size()", Matchers.is(208));
 	}
 
     @Test

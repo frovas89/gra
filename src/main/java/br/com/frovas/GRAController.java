@@ -26,21 +26,7 @@ import br.com.frovas.rest.dto.ProducerMovieDTO;
 public class GRAController {
 
 
-	public void teste() {
-
-		//		var movies = em.persist(em);;
-		//		movies.forEach(System.out::println);
-	}
-
-
 	public static List<Movie> readCSVFileToObject(FileReader fileReader) throws IOException, CsvException {
-
-		//		List<Movie> movies = new CsvToBeanBuilder<Movie>(fileReader)
-		//                .withType(Movie.class).withSeparator(';').withSkipLines(1)
-		//                .build()
-		//                .parse();
-
-		//		movies.forEach(System.out::println);
 
 		CSVParser csvParser = new CSVParserBuilder().withSeparator(';').build();
 		CSVReader reader = new CSVReaderBuilder(fileReader)
@@ -174,49 +160,67 @@ public class GRAController {
 			};
 			Collections.sort(listProducersDTO,  comp);
 
-			// o máximo de diferença de anos será o primeiro ano da lista deste produtor com o último
-			Integer firstYear = listProducersDTO.get(0).getYear();
-			Integer lastYear = listProducersDTO.get(listProducersDTO.size()-1).getYear();
-
-			//quando é maior, zera a lista e começa adicionar de novo
-			if(lastYear - firstYear > dtoMax.getInterval()) {
-				dtoMax.setProducer(producerName);
-				dtoMax.setInterval(lastYear - firstYear);
-				dtoMax.setPreviousWin(firstYear);
-				dtoMax.setFollowingWin(lastYear);
-				max = new ArrayList<ProducerIntervalDTO>();
-				max.add(dtoMax);
-			} else if(lastYear - firstYear == dtoMax.getInterval()) {
-				//se for igual adiciona na lista (caso de 2 produtores com mesma diferença de anos vencedores)
-				//se for menor não faz nada
-				max.add(dtoMax);
-			}
-
 			int count = 0;
 
-			ProducerIntervalDTO dtoMinAux = new ProducerIntervalDTO();
 			// percorrer comparando dois a dois
 			while(count < listProducersDTO.size()-1) {
 
+				ProducerIntervalDTO dtoMaxAux = new ProducerIntervalDTO();
 				Integer interval =  listProducersDTO.get(count+1).getYear() - listProducersDTO.get(count).getYear();
-				if(interval > 0 && interval < dtoMin.getInterval()) {
-					dtoMinAux.setProducer(producerName);
-					dtoMinAux.setInterval(lastYear - firstYear);
-					dtoMinAux.setPreviousWin(firstYear);
-					dtoMinAux.setFollowingWin(lastYear);
+				if(interval > 0 && interval >= dtoMax.getInterval()) {
+					dtoMaxAux.setProducer(producerName);
+					dtoMaxAux.setInterval(interval);
+					dtoMaxAux.setPreviousWin(listProducersDTO.get(count).getYear());
+					dtoMaxAux.setFollowingWin(listProducersDTO.get(count+1).getYear());
+
+				}
+
+				if(dtoMaxAux.getInterval() != null) {
+					if(dtoMaxAux.getInterval() > dtoMax.getInterval()) {
+						dtoMax = new ProducerIntervalDTO();
+						dtoMax = dtoMaxAux;
+						max = new ArrayList<ProducerIntervalDTO>();
+						max.add(dtoMax);
+					} else if (dtoMaxAux.getInterval() == dtoMax.getInterval()) {
+						dtoMax = new ProducerIntervalDTO();
+						dtoMax = dtoMaxAux;
+						max.add(dtoMaxAux);
+					}
 				}
 				count++;
 			}
 
-			if(dtoMinAux.getInterval() != null) {
-				if(dtoMinAux.getInterval() < dtoMin.getInterval()) {
-					dtoMin = dtoMinAux;
-					min = new ArrayList<ProducerIntervalDTO>();
-					min.add(dtoMin);
-				} else if (dtoMinAux.getInterval() == dtoMin.getInterval()) {
-					min.add(dtoMin);
+
+
+			count = 0;
+
+			// percorrer comparando dois a dois
+			while(count < listProducersDTO.size()-1) {
+
+				ProducerIntervalDTO dtoMinAux = new ProducerIntervalDTO();
+				Integer interval =  listProducersDTO.get(count+1).getYear() - listProducersDTO.get(count).getYear();
+				if(interval > 0 && interval <= dtoMin.getInterval()) {
+					dtoMinAux.setProducer(producerName);
+					dtoMinAux.setInterval(interval);
+					dtoMinAux.setPreviousWin(listProducersDTO.get(count).getYear());
+					dtoMinAux.setFollowingWin(listProducersDTO.get(count+1).getYear());
+				}
+				count++;
+
+				if(dtoMinAux.getInterval() != null) {
+					if(dtoMinAux.getInterval() < dtoMin.getInterval()) {
+						dtoMin = new ProducerIntervalDTO();
+						dtoMin = dtoMinAux;
+						min = new ArrayList<ProducerIntervalDTO>();
+						min.add(dtoMin);
+					} else if (dtoMinAux.getInterval() == dtoMin.getInterval()) {
+						dtoMin = new ProducerIntervalDTO();
+						dtoMin = dtoMinAux;
+						min.add(dtoMin);
+					}
 				}
 			}
+
 		}
 
 		MinMaxIntervalRequestDTO finalDTO = new MinMaxIntervalRequestDTO();
